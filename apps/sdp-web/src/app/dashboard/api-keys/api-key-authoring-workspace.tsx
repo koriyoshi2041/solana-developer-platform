@@ -73,6 +73,8 @@ interface ApiKeyAuthoringWorkspaceProps {
   mode: ApiKeyAuthoringMode;
   wallets: ApiKeyAuthoringWallet[];
   initialKey?: ApiKeyAuthoringExistingKey;
+  /** Off when the deployment's release channel leaves policies out: no wallet controls or restrictions. */
+  policiesEnabled: boolean;
 }
 
 function toLocalDateTime(value: string | null): string {
@@ -713,6 +715,7 @@ function WalletPolicyStep({
   draft,
   wallets,
   hadExistingRestrictions,
+  policiesEnabled,
   walletSelectionTouched,
   onWalletSelectionTouched,
   update,
@@ -720,6 +723,7 @@ function WalletPolicyStep({
   draft: ApiKeyAuthoringDraft;
   wallets: ApiKeyAuthoringWallet[];
   hadExistingRestrictions: boolean;
+  policiesEnabled: boolean;
   walletSelectionTouched: boolean;
   onWalletSelectionTouched: () => void;
   update: (patch: Partial<ApiKeyAuthoringDraft>) => void;
@@ -846,46 +850,50 @@ function WalletPolicyStep({
           ) : null}
         </WorkSection>
 
-        <WorkSection
-          title={t("DashboardCustody.apiKeyWalletControlsEnforced")}
-          description={t("DashboardCustody.apiKeyWalletControlsDescription")}
-        >
-          <WalletBaseline wallets={baselineWallets} />
-        </WorkSection>
+        {policiesEnabled ? (
+          <>
+            <WorkSection
+              title={t("DashboardCustody.apiKeyWalletControlsEnforced")}
+              description={t("DashboardCustody.apiKeyWalletControlsDescription")}
+            >
+              <WalletBaseline wallets={baselineWallets} />
+            </WorkSection>
 
-        <WorkSection title={t("DashboardCustody.apiKeyRestrictionsTitle")}>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-primary">
-                {t("DashboardCustody.apiKeyAddRestrictions")}
-              </p>
-              {!draft.restrictionsEnabled ? (
-                <p className="mt-1 text-xs text-secondary">
-                  {t("DashboardCustody.apiKeyNoAdditionalRestrictions")}
-                </p>
+            <WorkSection title={t("DashboardCustody.apiKeyRestrictionsTitle")}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-primary">
+                    {t("DashboardCustody.apiKeyAddRestrictions")}
+                  </p>
+                  {!draft.restrictionsEnabled ? (
+                    <p className="mt-1 text-xs text-secondary">
+                      {t("DashboardCustody.apiKeyNoAdditionalRestrictions")}
+                    </p>
+                  ) : null}
+                </div>
+                <ToggleSwitch
+                  checked={draft.restrictionsEnabled}
+                  aria-label={t("DashboardCustody.apiKeyAddRestrictions")}
+                  onChange={(restrictionsEnabled) =>
+                    update({
+                      restrictionsEnabled,
+                      restrictionsEdited: restrictionsEnabled ? !hadExistingRestrictions : false,
+                    })
+                  }
+                />
+              </div>
+              {draft.restrictionsEnabled ? (
+                <div className="mt-4">
+                  <RestrictionEditor
+                    draft={draft}
+                    preservingExisting={preservingExisting}
+                    update={update}
+                  />
+                </div>
               ) : null}
-            </div>
-            <ToggleSwitch
-              checked={draft.restrictionsEnabled}
-              aria-label={t("DashboardCustody.apiKeyAddRestrictions")}
-              onChange={(restrictionsEnabled) =>
-                update({
-                  restrictionsEnabled,
-                  restrictionsEdited: restrictionsEnabled ? !hadExistingRestrictions : false,
-                })
-              }
-            />
-          </div>
-          {draft.restrictionsEnabled ? (
-            <div className="mt-4">
-              <RestrictionEditor
-                draft={draft}
-                preservingExisting={preservingExisting}
-                update={update}
-              />
-            </div>
-          ) : null}
-        </WorkSection>
+            </WorkSection>
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -1212,6 +1220,7 @@ export function ApiKeyAuthoringWorkspace({
   mode,
   wallets,
   initialKey,
+  policiesEnabled,
 }: ApiKeyAuthoringWorkspaceProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -1327,6 +1336,7 @@ export function ApiKeyAuthoringWorkspace({
                 draft={draft}
                 wallets={wallets}
                 hadExistingRestrictions={hadExistingRestrictions}
+                policiesEnabled={policiesEnabled}
                 walletSelectionTouched={walletSelectionTouched}
                 onWalletSelectionTouched={() => setWalletSelectionTouched(true)}
                 update={update}

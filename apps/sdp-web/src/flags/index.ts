@@ -2,6 +2,7 @@ import { vercelAdapter } from "@flags-sdk/vercel";
 import type { RampProviderId } from "@sdp/types";
 import { dedupe, flag } from "flags/next";
 import { getSdpAuth } from "@/lib/sdp-api";
+import { releaseChannelAdapter } from "./release-channel";
 
 type DashboardFlagEntities = {
   user?: {
@@ -63,7 +64,7 @@ const identifyDashboardEntities = dedupe(async (): Promise<DashboardFlagEntities
 function rampProviderFlag(provider: RampProviderId, title: string) {
   return flag<boolean, DashboardFlagEntities>({
     key: `ramp-provider-${provider}`,
-    adapter: vercelAdapter(),
+    adapter: releaseChannelAdapter("ramps"),
     identify: identifyDashboardEntities,
     defaultValue: flagDefault(`RAMP_PROVIDER_${provider.toUpperCase()}_ENABLED`, true),
     description: `Show ${title} as a selectable provider in the onramp and offramp wizards.`,
@@ -91,7 +92,7 @@ export const homepageOpenSignup = flag<boolean, DashboardFlagEntities>({
 
 export const custody = flag<boolean, DashboardFlagEntities>({
   key: "custody",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("custody"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("CUSTODY_ENABLED", false),
   description:
@@ -104,7 +105,7 @@ export const custody = flag<boolean, DashboardFlagEntities>({
 
 export const issuance = flag<boolean, DashboardFlagEntities>({
   key: "issuance",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("issuance"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("ISSUANCE_ENABLED", false),
   description:
@@ -117,7 +118,7 @@ export const issuance = flag<boolean, DashboardFlagEntities>({
 
 export const policies = flag<boolean, DashboardFlagEntities>({
   key: "policies",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("policies"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("POLICIES_ENABLED", false),
   description:
@@ -130,7 +131,7 @@ export const policies = flag<boolean, DashboardFlagEntities>({
 
 export const privyByok = flag<boolean, DashboardFlagEntities>({
   key: "privy-byok",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("custody"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("SDP_FLAG_PRIVY_BYOK", false),
   description:
@@ -143,7 +144,7 @@ export const privyByok = flag<boolean, DashboardFlagEntities>({
 
 export const assetProfiles = flag<boolean, DashboardFlagEntities>({
   key: "asset-profiles",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("issuance"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("SDP_FLAG_ASSET_PROFILES", true),
   description:
@@ -156,7 +157,7 @@ export const assetProfiles = flag<boolean, DashboardFlagEntities>({
 
 export const privateChannels = flag<boolean, DashboardFlagEntities>({
   key: "private-channels",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("private_channels"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("PRIVATE_CHANNELS_ENABLED", false),
   description:
@@ -169,7 +170,7 @@ export const privateChannels = flag<boolean, DashboardFlagEntities>({
 
 export const heliusRings = flag<boolean, DashboardFlagEntities>({
   key: "helius-rings",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("helius_rings"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("HELIUS_RINGS_ENABLED", false),
   description:
@@ -182,7 +183,7 @@ export const heliusRings = flag<boolean, DashboardFlagEntities>({
 
 export const payments = flag<boolean, DashboardFlagEntities>({
   key: "payments",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("payments"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("PAYMENTS_ENABLED", true),
   description:
@@ -195,7 +196,7 @@ export const payments = flag<boolean, DashboardFlagEntities>({
 
 export const markets = flag<boolean, DashboardFlagEntities>({
   key: "markets",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("markets"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("MARKETS_ENABLED", false),
   description:
@@ -208,7 +209,7 @@ export const markets = flag<boolean, DashboardFlagEntities>({
 
 export const dvp = flag<boolean, DashboardFlagEntities>({
   key: "dvp",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("dvp"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("DVP_ENABLED", false),
   description:
@@ -221,7 +222,7 @@ export const dvp = flag<boolean, DashboardFlagEntities>({
 
 export const earn = flag<boolean, DashboardFlagEntities>({
   key: "earn",
-  adapter: vercelAdapter(),
+  adapter: releaseChannelAdapter("earn"),
   identify: identifyDashboardEntities,
   defaultValue: flagDefault("EARN_ENABLED", false),
   description:

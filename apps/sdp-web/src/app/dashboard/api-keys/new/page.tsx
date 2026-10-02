@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { policies } from "@/flags";
 import { getAuthEntryPath } from "@/lib/auth-entry";
 import { resolveDashboardAccess } from "@/lib/dashboard-access";
 import { createSdpApiClient } from "@/lib/sdp-api";
@@ -20,7 +21,9 @@ export default async function NewApiKeyPage() {
     redirect("/dashboard/api-keys");
   }
 
-  const client = await createSdpApiClient();
-  const wallets = await fetchApiKeyAuthoringWallets(client);
-  return <ApiKeyAuthoringWorkspace mode="create" wallets={wallets} />;
+  const [client, policiesEnabled] = await Promise.all([createSdpApiClient(), policies()]);
+  const wallets = await fetchApiKeyAuthoringWallets(client, { policiesEnabled });
+  return (
+    <ApiKeyAuthoringWorkspace mode="create" wallets={wallets} policiesEnabled={policiesEnabled} />
+  );
 }

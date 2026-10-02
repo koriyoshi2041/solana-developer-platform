@@ -367,6 +367,7 @@ export function DashboardShell({
     payments: paymentsEnabled,
     policies: policiesEnabled,
     privateChannels: privateChannelsEnabled,
+    ramps: rampsEnabled,
   } = flags;
   const t = useTranslations();
   const { isLoaded, isSignedIn, orgId } = useAuth();
@@ -412,6 +413,7 @@ export function DashboardShell({
     pendingApprovalCount,
     policiesEnabled,
     privateChannelsEnabled,
+    rampsEnabled,
   });
   const contentWidthClass = pageConfig.contentWidthClass ?? "max-w-5xl";
   const backAction = pageConfig.backAction ? (

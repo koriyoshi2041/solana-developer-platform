@@ -187,7 +187,7 @@ export function getIntegrationActions(
   t: ReturnType<typeof useTranslations>,
   options: Pick<
     Parameters<typeof getNavSections>[1],
-    "custodyEnabled" | "paymentsEnabled" | "policiesEnabled" | "privateChannelsEnabled"
+    "custodyEnabled" | "policiesEnabled" | "privateChannelsEnabled" | "rampsEnabled"
   >
 ): SubNavItem[] {
   return [
@@ -205,7 +205,7 @@ export function getIntegrationActions(
       href: DASHBOARD_INTEGRATIONS_SUBNAV_HREFS.rpc,
       icon: CircleDotDashedIcon,
     },
-    ...(options.paymentsEnabled
+    ...(options.rampsEnabled
       ? [
           {
             label: t("Shared.integrations.rampsTitle"),
@@ -249,6 +249,7 @@ export function getNavSections(
     pendingApprovalCount: number | null;
     policiesEnabled: boolean;
     privateChannelsEnabled: boolean;
+    rampsEnabled: boolean;
   }
 ): NavSection[] {
   const marketsActions = getMarketsActions(t, options.earnEnabled, options.dvpEnabled);

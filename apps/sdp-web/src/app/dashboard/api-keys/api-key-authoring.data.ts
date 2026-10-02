@@ -26,16 +26,28 @@ async function fetchWalletControlBaseline(
   };
 }
 
+/**
+ * Loads the wallets an API key can be bound to. Without the Policies module
+ * (a release channel can leave it out) wallet controls are not configurable, so the
+ * per-wallet policy read is skipped rather than failing on its 403.
+ */
 export async function fetchApiKeyAuthoringWallets(
-  client: SdpApiClient
+  client: SdpApiClient,
+  { policiesEnabled }: { policiesEnabled: boolean }
 ): Promise<ApiKeyAuthoringWallet[]> {
   const result = await fetchPaymentsWallets(client.request, { includeBalances: false });
   if (!result.ok) {
     throw new Error(result.error ?? "Unable to load wallets");
   }
-  return Promise.all(
-    (result.data ?? []).map((wallet) => fetchWalletControlBaseline(client, wallet))
-  );
+  const wallets = result.data ?? [];
+  if (!policiesEnabled) {
+    return wallets.map((wallet) => ({
+      ...wallet,
+      controlStatus: "default_allow",
+      activeRevisionNumber: null,
+    }));
+  }
+  return Promise.all(wallets.map((wallet) => fetchWalletControlBaseline(client, wallet)));
 }
 
 export async function fetchApiKeyForAuthoring(

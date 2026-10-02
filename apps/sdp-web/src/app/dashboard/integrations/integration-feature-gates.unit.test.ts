@@ -7,7 +7,7 @@ import type { IntegrationFamily } from "./integrations-filter";
 
 const ALL_DISABLED = {
   custody: false,
-  payments: false,
+  ramps: false,
   policies: false,
   privateChannels: false,
 };
@@ -23,7 +23,7 @@ describe("integration feature gates", () => {
 
   it.each([
     ["privy", "custody"],
-    ["moonpay", "payments"],
+    ["moonpay", "ramps"],
     ["range", "policies"],
   ] as const)("gates %s with the %s module", (provider, flag) => {
     expect(isIntegrationProviderEnabled(provider, ALL_DISABLED)).toBe(false);

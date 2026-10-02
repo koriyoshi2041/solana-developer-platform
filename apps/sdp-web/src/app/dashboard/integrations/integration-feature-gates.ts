@@ -4,7 +4,8 @@ import type { IntegrationFamily } from "./integrations-filter";
 
 export type IntegrationFeatureFlags = {
   custody: boolean;
-  payments: boolean;
+  /** Payments on and at least one ramp provider enabled (`isRampsEnabled`). */
+  ramps: boolean;
   policies: boolean;
   privateChannels: boolean;
 };
@@ -22,7 +23,7 @@ export function isIntegrationFamilyEnabled(
     case "custody":
       return flags.custody;
     case "ramps":
-      return flags.payments;
+      return flags.ramps;
     case "compliance":
       return flags.policies;
     case "privacy":
@@ -35,10 +36,10 @@ export function isIntegrationFamilyEnabled(
 /** Keeps provider deep links aligned with the families shown in the catalog. */
 export function isIntegrationProviderEnabled(
   provider: string,
-  flags: Pick<IntegrationFeatureFlags, "custody" | "payments" | "policies">
+  flags: Pick<IntegrationFeatureFlags, "custody" | "ramps" | "policies">
 ): boolean {
   if (isKnownCustodyProvider(provider)) return flags.custody;
-  if ((RAMP_PROVIDERS as readonly string[]).includes(provider)) return flags.payments;
+  if ((RAMP_PROVIDERS as readonly string[]).includes(provider)) return flags.ramps;
   if ((COMPLIANCE_PROVIDERS as readonly string[]).includes(provider)) return flags.policies;
   return true;
 }

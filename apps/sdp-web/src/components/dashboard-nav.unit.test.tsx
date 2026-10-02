@@ -39,6 +39,7 @@ function navOptions(overrides: Partial<Parameters<typeof getNavSections>[1]> = {
     pendingApprovalCount: null,
     policiesEnabled: true,
     privateChannelsEnabled: false,
+    rampsEnabled: true,
     ...overrides,
   };
 }
@@ -249,6 +250,7 @@ describe("Integrations dashboard navigation", () => {
         paymentsEnabled: true,
         policiesEnabled: true,
         privateChannelsEnabled: true,
+        rampsEnabled: true,
       })
     );
 
@@ -270,10 +272,20 @@ describe("Integrations dashboard navigation", () => {
         paymentsEnabled: false,
         policiesEnabled: false,
         privateChannelsEnabled: false,
+        rampsEnabled: false,
       })
     );
 
     expect(item?.children?.map((child) => child.href)).toEqual(["/dashboard/integrations?tab=rpc"]);
+  });
+
+  // The release channel caps every ramp provider flag, so ramps can be off while Payments is on.
+  it("drops Ramps when no ramp provider is enabled, even with Payments on", () => {
+    const item = findIntegrationsItem(navOptions({ paymentsEnabled: true, rampsEnabled: false }));
+
+    expect(item?.children?.map((child) => child.href)).not.toContain(
+      "/dashboard/integrations?tab=ramps"
+    );
   });
 });
 

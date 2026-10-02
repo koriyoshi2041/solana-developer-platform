@@ -10,6 +10,7 @@ import {
   policies,
   privateChannels,
 } from "@/flags";
+import { isRampsEnabled } from "./ramps";
 
 export type DashboardFlags = {
   assetProfiles: boolean;
@@ -22,6 +23,7 @@ export type DashboardFlags = {
   payments: boolean;
   policies: boolean;
   privateChannels: boolean;
+  ramps: boolean;
 };
 
 /**
@@ -46,6 +48,7 @@ export async function getDashboardFlags(): Promise<DashboardFlags> {
     paymentsEnabled,
     policiesEnabled,
     privateChannelsEnabled,
+    rampsEnabled,
   ] = await Promise.all([
     assetProfiles(),
     custody(),
@@ -57,6 +60,7 @@ export async function getDashboardFlags(): Promise<DashboardFlags> {
     payments(),
     policies(),
     privateChannels(),
+    isRampsEnabled(),
   ]);
 
   return {
@@ -70,5 +74,6 @@ export async function getDashboardFlags(): Promise<DashboardFlags> {
     payments: paymentsEnabled,
     policies: policiesEnabled,
     privateChannels: privateChannelsEnabled,
+    ramps: rampsEnabled,
   };
 }

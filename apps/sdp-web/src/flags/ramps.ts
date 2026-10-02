@@ -1,6 +1,7 @@
 import type { RampProviderId } from "@sdp/types";
 import { RAMP_PROVIDERS } from "@sdp/types";
 import {
+  payments,
   rampProviderBvnk,
   rampProviderCoinbase,
   rampProviderLightspark,
@@ -31,4 +32,15 @@ export async function getEnabledRampProviders(): Promise<RampProviderId[]> {
   );
 
   return RAMP_PROVIDERS.filter((_, index) => enabled[index]);
+}
+
+/**
+ * Whether ramps are offered at all: Payments is on and at least one provider
+ * is enabled. The release channel caps every provider flag, so this follows it too.
+ *
+ * @returns True when the ramps surfaces (payments wizards, integrations) should show.
+ */
+export async function isRampsEnabled(): Promise<boolean> {
+  const [paymentsEnabled, providers] = await Promise.all([payments(), getEnabledRampProviders()]);
+  return paymentsEnabled && providers.length > 0;
 }

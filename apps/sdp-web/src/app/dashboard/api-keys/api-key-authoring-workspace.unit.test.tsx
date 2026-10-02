@@ -42,11 +42,11 @@ function permissionChips(): string[] {
 }
 
 /** Fills the details step and lands on the permissions step, where the role cards live. */
-async function openPermissionsStep() {
+async function openPermissionsStep({ policiesEnabled = true } = {}) {
   const user = userEvent.setup();
   render(
     <I18nProvider locale="en" messages={getMessages("en")}>
-      <ApiKeyAuthoringWorkspace mode="create" wallets={[]} />
+      <ApiKeyAuthoringWorkspace mode="create" wallets={[]} policiesEnabled={policiesEnabled} />
     </I18nProvider>
   );
   await user.type(screen.getByLabelText("Name"), "Partner backend");
@@ -112,5 +112,17 @@ describe("ApiKeyAuthoringWorkspace permissions", () => {
     const chips = permissionChips();
     expect(chips).toEqual([...getPermissionsForApiKeyRole("api_developer")]);
     expect(chips).toContain("earn:write");
+  });
+});
+
+describe("ApiKeyAuthoringWorkspace without the Policies module", () => {
+  it.each([
+    [true, true],
+    [false, false],
+  ])("policiesEnabled=%s shows API-key restrictions: %s", async (policiesEnabled, shown) => {
+    const user = await openPermissionsStep({ policiesEnabled });
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.queryByText("Add API-key restrictions") !== null).toBe(shown);
   });
 });

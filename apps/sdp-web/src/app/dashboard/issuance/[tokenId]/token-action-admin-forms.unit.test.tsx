@@ -134,6 +134,7 @@ async function renderControlList(
           payments: false,
           policies: false,
           privateChannels: false,
+          ramps: false,
         }}
         serverDashboardCacheScope={{ orgId: "org_test", userId: "user_test" }}
         projects={[]}

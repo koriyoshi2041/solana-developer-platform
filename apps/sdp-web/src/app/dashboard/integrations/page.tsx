@@ -3,7 +3,8 @@ import type { CustodyConfigSummary, PrivateChannelInstanceEnvelope } from "@sdp/
 import { redirect } from "next/navigation";
 import { isKnownCustodyProvider } from "@/app/dashboard/custody/provider-catalog";
 import type { OnboardingStatusResponse } from "@/app/dashboard/onboarding-status";
-import { custody, payments, policies, privateChannels } from "@/flags";
+import { custody, policies, privateChannels } from "@/flags";
+import { isRampsEnabled } from "@/flags/ramps";
 import { getTranslations } from "@/i18n/server";
 import { getAuthEntryPath } from "@/lib/auth-entry";
 import { resolveDashboardAccess } from "@/lib/dashboard-access";
@@ -72,11 +73,17 @@ export default async function IntegrationsPage() {
     throw new Error("Selected project required");
   }
   const organizationId = onboarding.organization.id;
-  const [t, custodyEnabled, paymentsEnabled, policiesEnabled, privateChannelsEnabled] =
-    await Promise.all([getTranslations(), custody(), payments(), policies(), privateChannels()]);
+  const [t, custodyEnabled, rampsEnabled, policiesEnabled, privateChannelsEnabled] =
+    await Promise.all([
+      getTranslations(),
+      custody(),
+      isRampsEnabled(),
+      policies(),
+      privateChannels(),
+    ]);
   const integrationFlags = {
     custody: custodyEnabled,
-    payments: paymentsEnabled,
+    ramps: rampsEnabled,
     policies: policiesEnabled,
     privateChannels: privateChannelsEnabled,
   };
@@ -146,7 +153,7 @@ export default async function IntegrationsPage() {
       enabledFamilies={[
         ...(custodyEnabled ? (["custody"] as const) : []),
         "rpc",
-        ...(paymentsEnabled ? (["ramps"] as const) : []),
+        ...(rampsEnabled ? (["ramps"] as const) : []),
         ...(policiesEnabled ? (["compliance"] as const) : []),
         ...(privateChannelsEnabled ? (["privacy"] as const) : []),
       ]}

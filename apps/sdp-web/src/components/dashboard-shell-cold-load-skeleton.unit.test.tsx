@@ -55,6 +55,7 @@ function renderColdLoad(pathname: string): string {
         payments: true,
         policies: false,
         privateChannels: false,
+        ramps: true,
       }}
     >
       <div>settled route content</div>

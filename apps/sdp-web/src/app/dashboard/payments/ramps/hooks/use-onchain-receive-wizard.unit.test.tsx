@@ -53,6 +53,7 @@ function wrapper({ children }: { children: ReactNode }) {
           payments: true,
           policies: false,
           privateChannels: false,
+          ramps: true,
         }}
         serverDashboardCacheScope={{ orgId: "org-test", userId: "user-test" }}
         projects={[]}
