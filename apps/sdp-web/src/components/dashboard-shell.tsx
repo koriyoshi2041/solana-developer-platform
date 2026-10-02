@@ -39,6 +39,7 @@ import {
   isDashboardNavItemActive,
   resolveDashboardLoadingRoute,
 } from "@/lib/dashboard-navigation-loading";
+import { useSyncDashboardUrlStateWithRouter } from "@/lib/dashboard-url-state";
 import { cn } from "@/lib/utils";
 
 const navItemBase =
@@ -371,6 +372,7 @@ export function DashboardShell({
   const t = useTranslations();
   const { isLoaded, isSignedIn, orgId } = useAuth();
   const pathname = usePathname();
+  useSyncDashboardUrlStateWithRouter();
   const { dashboardAccess, selectedProjectId, isSidebarOpen, setSidebarOpen, isProjectSwitching } =
     useDashboardWorkspace();
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
