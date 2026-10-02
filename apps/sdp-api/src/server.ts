@@ -12,6 +12,7 @@ import { type ServerType, serve } from "@hono/node-server";
 
 import { createApp } from "@/app";
 import { startCron, startEarnCatalogueBootSync } from "@/cron/runner";
+import { assertSdpReleaseChannelConfigured } from "@/lib/feature-flags";
 import { getProcessEnv } from "@/lib/runtime-env";
 import { createNodeExecutionContext, NodeBackgroundRunner } from "@/runtime/background-node";
 import { createNodeHttpApp } from "@/runtime/http-node";
@@ -101,6 +102,7 @@ function assertRequiredEnv(env: Env): void {
   }
   assertCustodyEncryptionScheme(env);
   assertSigningProviderAllowed(env);
+  assertSdpReleaseChannelConfigured(env);
 }
 
 async function main(): Promise<void> {

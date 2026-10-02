@@ -1,13 +1,23 @@
+import {
+  isModuleInReleaseChannel,
+  resolveSdpReleaseChannel,
+  SDP_MODULES,
+  SDP_RELEASE_CHANNELS,
+} from "@sdp/types";
 import { describe, expect, it } from "vitest";
 import type { Env } from "@/types/env";
 import {
+  assertSdpReleaseChannelConfigured,
   isAssetProfilesEnabled,
   isCustodyConnectionRuntimeEnabled,
+  isDvpEnabled,
   isEarnEnabled,
   isEarnHastraDexExitConfigured,
   isEarnHastraDexExitEnabled,
   isEarnVaultSponsorshipEnabled,
+  isHeliusRingsEnabled,
   isMarketsEnabled,
+  isModuleAvailable,
   isPrivateChannelsEnabled,
   isPrivyByokEnabled,
   resolveNewCustodySetupMethod,
@@ -221,5 +231,103 @@ describe("isEarnVaultSponsorshipEnabled", () => {
     const env = { ...devnetOnly, FEE_PAYMENT_PROVIDER: "native" } as Env;
     expect(isEarnVaultSponsorshipEnabled(env, "devnet")).toBe(true);
     expect(isEarnVaultSponsorshipEnabled(env, "mainnet-beta")).toBe(false);
+  });
+});
+
+describe("release channels", () => {
+  it.each([undefined, "", "  "])(
+    "defaults to the preview release channel when SDP_RELEASE_CHANNEL is %j",
+    (value) => {
+      expect(resolveSdpReleaseChannel(value)).toBe("preview");
+    }
+  );
+
+  it("fails loudly on an unknown release channel instead of running every module", () => {
+    expect(() => resolveSdpReleaseChannel("mainnet")).toThrow(/SDP_RELEASE_CHANNEL must be one of/);
+  });
+
+  it("requires an explicit release channel in managed production only", () => {
+    const managedProduction = {
+      ENVIRONMENT: "production",
+      SDP_DEPLOYMENT_MODE: "managed",
+    } as const;
+    expect(() => assertSdpReleaseChannelConfigured(managedProduction)).toThrow(
+      /SDP_RELEASE_CHANNEL is required/
+    );
+    expect(() =>
+      assertSdpReleaseChannelConfigured({ ...managedProduction, SDP_RELEASE_CHANNEL: "stable" })
+    ).not.toThrow();
+    expect(() =>
+      assertSdpReleaseChannelConfigured({
+        ...managedProduction,
+        SDP_DEPLOYMENT_MODE: "self_hosted",
+      })
+    ).not.toThrow();
+    expect(() =>
+      assertSdpReleaseChannelConfigured({
+        ENVIRONMENT: "development",
+        SDP_DEPLOYMENT_MODE: "managed",
+      })
+    ).not.toThrow();
+    expect(() =>
+      assertSdpReleaseChannelConfigured({
+        ENVIRONMENT: "development",
+        SDP_RELEASE_CHANNEL: "mainnet",
+      })
+    ).toThrow(/SDP_RELEASE_CHANNEL must be one of/);
+  });
+
+  it("keeps every module available in the preview release channel", () => {
+    for (const module of SDP_MODULES) {
+      expect(isModuleAvailable({ SDP_RELEASE_CHANNEL: "preview" }, module)).toBe(true);
+    }
+  });
+
+  // Pinned on purpose: changing what stable ships must show up in review
+  // as an edit to this list, not only to the manifest.
+  // A module runs in every release channel at or below its own maturity.
+  it.each([
+    ["preview", "ramps", true],
+    ["beta", "ramps", false],
+    ["stable", "ramps", false],
+    ["preview", "custody", true],
+    ["beta", "custody", true],
+    ["stable", "custody", true],
+  ] as const)("a %s deployment runs %s: %s", (releaseChannel, module, expected) => {
+    expect(isModuleInReleaseChannel(releaseChannel, module)).toBe(expected);
+  });
+
+  it("pins the stable modules", () => {
+    expect(SDP_RELEASE_CHANNELS.stable).toEqual([
+      "custody",
+      "payments",
+      "recurring_payments",
+      "compliance",
+    ]);
+  });
+
+  it("keeps release-channel-excluded modules off in stable even with every flag on", () => {
+    const env = {
+      SDP_RELEASE_CHANNEL: " stable ",
+      MARKETS_ENABLED: "true",
+      EARN_ENABLED: "true",
+      PRIVATE_CHANNELS_ENABLED: "true",
+      HELIUS_RINGS_ENABLED: "true",
+      SDP_FLAG_ASSET_PROFILES: "true",
+    } as Env;
+
+    expect(isMarketsEnabled(env)).toBe(false);
+    expect(isEarnEnabled(env)).toBe(false);
+    expect(isDvpEnabled(env)).toBe(false);
+    expect(isPrivateChannelsEnabled(env)).toBe(false);
+    expect(isHeliusRingsEnabled(env)).toBe(false);
+    expect(isAssetProfilesEnabled({ ...env, SDP_DEPLOYMENT_MODE: "managed" })).toBe(false);
+    expect(isAssetProfilesEnabled({ ...env, SDP_DEPLOYMENT_MODE: "self_hosted" })).toBe(false);
+  });
+
+  it("leaves release-channel-included features to their flags", () => {
+    const env = { SDP_RELEASE_CHANNEL: "preview", MARKETS_ENABLED: "true" } as Env;
+    expect(isDvpEnabled(env)).toBe(true);
+    expect(isDvpEnabled({ ...env, MARKETS_ENABLED: undefined })).toBe(false);
   });
 });
