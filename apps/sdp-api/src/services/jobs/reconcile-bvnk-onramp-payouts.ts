@@ -32,6 +32,7 @@ import { createPostgresBvnkOnrampTransfersRepository } from "@/db/repositories/b
 import type { CounterpartyProviderAccountRow } from "@/db/repositories/counterparty-provider-account.repository";
 import { createPostgresCounterpartyProviderAccountsRepository } from "@/db/repositories/counterparty-provider-account.repository.postgres";
 import { internalError } from "@/lib/errors";
+import { isModuleAvailable } from "@/lib/feature-flags";
 import { buildBvnkOnrampPayout } from "@/routes/payments/ramps/providers/bvnk";
 import {
   applyTerminalBvnkPayoutObservation,
@@ -62,6 +63,9 @@ const BVNK_PAYOUT_ASSET_CURRENCIES = new Set<string>(BVNK_CRYPTO_CURRENCIES);
  * @returns The number of candidate rows touched by at least one database write or a successful provider-side create/record.
  */
 export async function reconcileBvnkOnrampPayouts(env: Env): Promise<number> {
+  if (!isModuleAvailable(env, "ramps")) {
+    return 0;
+  }
   const repo = createPostgresBvnkOnrampTransfersRepository(getDb(env));
   const now = Date.now();
   const unclaimed = await repo.listUnclaimedPayoutCandidates({

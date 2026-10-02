@@ -3,6 +3,7 @@ import {
   createPostgresRampWebhookEventsRepository,
   type RampWebhookEventRow,
 } from "@/db/repositories/ramp-webhook-event.repository";
+import { isModuleAvailable } from "@/lib/feature-flags";
 import { TerminalRampWebhookError, type WebhookProcessor } from "@/routes/webhooks/ramps/processor";
 import {
   isWebhookRampProvider,
@@ -129,6 +130,9 @@ export async function applyStoredRampWebhookEvent(
  * number of events applied.
  */
 export async function replayRampWebhookEvents(env: Env): Promise<number> {
+  if (!isModuleAvailable(env, "ramps")) {
+    return 0;
+  }
   const events = createPostgresRampWebhookEventsRepository(getDb(env));
   const cutoff = new Date(Date.now() - RAMP_WEBHOOK_EVENT_REPLAY_MIN_AGE_MS).toISOString();
   const appRevision = currentAppRevision(env);

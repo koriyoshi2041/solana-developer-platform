@@ -33,6 +33,7 @@ import { kvStoreMiddleware } from "@/middleware/kv-store";
 import { skipRateLimitPaths } from "@/middleware/rate-limit";
 import { requestIdMiddleware } from "@/middleware/request-id";
 import { requestTracingMiddleware } from "@/middleware/request-tracing";
+import { requireModule } from "@/middleware/require-module";
 import allowlist from "@/routes/allowlist";
 import apiKeys from "@/routes/api-keys";
 import assetProfiles from "@/routes/asset-profiles";
@@ -395,6 +396,7 @@ export function createApp(deps: AppDeps): Hono<{ Bindings: Env }> {
   // Asset profiles live under the issuance namespace, as a sibling of
   // /issuance/tokens. The router is self-contained (own auth + feature-flag + project
   // middleware).
+  v1.use("/issuance/*", requireModule("issuance"));
   v1.route("/issuance/asset-profiles", assetProfiles);
   v1.route("/issuance", issuance);
   v1.route("/wallets", wallets);
