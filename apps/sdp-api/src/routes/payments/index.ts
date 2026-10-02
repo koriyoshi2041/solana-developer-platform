@@ -15,6 +15,9 @@ import walletPolicies from "./wallet-policies";
 const payments = new Hono<{ Bindings: Env }>();
 
 payments.use("/ramps/*", requireModule("ramps"));
+// Excludes policy configuration only: policyGate (idempotency, operation ledger) and
+// approval requests keep running whatever the release channel.
+payments.use("/wallets/:walletId/policies/*", requireModule("policies"));
 payments.use("*", unifiedAuthMiddleware());
 payments.use("*", projectContextMiddleware());
 

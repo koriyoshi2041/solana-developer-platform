@@ -27,7 +27,15 @@ const MODULE_PROBES = {
     ["GET", "/v1/counterparties/cp_1/provider-accounts"],
   ],
   compliance: [["GET", "/v1/compliance"]],
-  policies: [["GET", "/v1/policies"]],
+  policies: [
+    ["GET", "/v1/policies"],
+    ["GET", "/v1/payments/wallets/wallet_1/policies"],
+    ["PUT", "/v1/payments/wallets/wallet_1/policies"],
+    ["GET", "/v1/payments/wallets/wallet_1/policies/evaluations"],
+    ["POST", "/v1/api-keys/key_1/policy-profiles"],
+    ["POST", "/v1/api-keys/key_1/policy-profiles/profile_1/revisions"],
+    ["PUT", "/v1/api-keys/key_1/policy-bindings"],
+  ],
   issuance: [
     ["GET", "/v1/issuance/templates"],
     ["GET", "/v1/issuance/asset-profiles"],
@@ -41,9 +49,6 @@ const MODULE_PROBES = {
     ["GET", "/internal/dashboard/helius-rings/connections"],
   ],
 } as const satisfies Record<SdpModule, readonly (readonly [string, string])[]>;
-
-// Gated in the next PR of the release channels stack.
-const NOT_YET_GATED: ReadonlySet<SdpModule> = new Set(["policies"]);
 
 // Every module flag on, so only the release channel can refuse a request.
 const ALL_FLAGS_ON = {
@@ -80,9 +85,7 @@ async function probe(releaseChannel: SdpReleaseChannel, module: SdpModule) {
 describe("release channels at the API", () => {
   for (const releaseChannel of SDP_RELEASE_CHANNEL_NAMES) {
     const included = SDP_RELEASE_CHANNELS[releaseChannel];
-    const excluded = SDP_MODULES.filter(
-      (module) => !included.includes(module) && !NOT_YET_GATED.has(module)
-    );
+    const excluded = SDP_MODULES.filter((module) => !included.includes(module));
 
     it.each(excluded)(`${releaseChannel}: refuses every %s route with 403`, async (module) => {
       for (const response of await probe(releaseChannel, module)) {
@@ -90,6 +93,17 @@ describe("release channels at the API", () => {
       }
     });
   }
+
+  // Balances share the wallet-policies router; the policy cut must not take them.
+  it("stable: keeps wallet balances next to the cut policy routes", async () => {
+    const app = createApp({ observability: noopObservability });
+    const response = await app.request(
+      "/v1/payments/wallets/wallet_1/balances",
+      {},
+      { ...baseEnv, SDP_RELEASE_CHANNEL: "stable" }
+    );
+    expect(response.status).not.toBe(403);
+  });
 
   it.each(SDP_MODULES)(
     "preview: does not refuse %s routes once its flags are on",
